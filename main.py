@@ -15,10 +15,15 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# ✅ CORREGIDO: AUTENTICACIÓN CON SERVICE ACCOUNT (Render-friendly)
+# ✅ Autenticación correcta usando Service Account
 gauth = GoogleAuth()
-gauth.LoadServiceConfigFile("credentials.json")
-gauth.ServiceAuth()
+gauth.LoadCredentialsFile("credentials.json")
+if gauth.credentials is None:
+    gauth.Authorize()
+elif gauth.access_token_expired:
+    gauth.Refresh()
+else:
+    gauth.Authorize()
 drive = GoogleDrive(gauth)
 
 # Almacén temporal para archivos por usuario
