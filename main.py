@@ -7,6 +7,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from oauth2client.service_account import ServiceAccountCredentials
 
 API_TOKEN = os.getenv("TELEGRAM_TOKEN")
 DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", None)
@@ -15,18 +16,13 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# ✅ Autenticación correcta usando Service Account
+# ✅ Autenticación Google Drive con Service Account
 gauth = GoogleAuth()
-gauth.LoadCredentialsFile("credentials.json")
-if gauth.credentials is None:
-    gauth.Authorize()
-elif gauth.access_token_expired:
-    gauth.Refresh()
-else:
-    gauth.Authorize()
+gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(
+    "credentials.json", ['https://www.googleapis.com/auth/drive']
+)
 drive = GoogleDrive(gauth)
 
-# Almacén temporal para archivos por usuario
 user_temp_files = {}
 
 @dp.message(lambda message: message.photo or message.video)
